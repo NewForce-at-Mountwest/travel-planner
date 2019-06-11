@@ -28,8 +28,12 @@ namespace TravelGuide.Controllers
         // GET: Trips
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Trip.Include(t => t.client);
-            return View(await applicationDbContext.ToListAsync());
+            ApplicationUser user = await GetCurrentUserAsync();
+            List<Trip> tripList = await _context.Trip
+                .Include(t => t.client)
+                .Where(t => t.client.ApplicationUserId == user.Id) // Only get trips for clients this user has created
+                .ToListAsync();
+            return View(tripList);
         }
 
         // GET: Trips/Details/5
@@ -52,9 +56,11 @@ namespace TravelGuide.Controllers
         }
 
         // GET: Trips/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "FirstName");
+            // TODO: refactor to view model
+            ApplicationUser user = await GetCurrentUserAsync();
+            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId== user.Id), "Id", "FirstName");
             return View();
         }
 
@@ -71,7 +77,9 @@ namespace TravelGuide.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "FirstName", trip.ClientId);
+            // TODO: refactor to view model
+            ApplicationUser user = await GetCurrentUserAsync();
+            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName");
             return View(trip);
         }
 
@@ -88,7 +96,10 @@ namespace TravelGuide.Controllers
             {
                 return NotFound();
             }
-            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "FirstName", trip.ClientId);
+
+            // Todo: refactor to view model
+            ApplicationUser user = await GetCurrentUserAsync();
+            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName");
             return View(trip);
         }
 
@@ -124,7 +135,9 @@ namespace TravelGuide.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "FirstName", trip.ClientId);
+            // Todo: refactor to view model
+            ApplicationUser user = await GetCurrentUserAsync();
+            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName");
             return View(trip);
         }
 
