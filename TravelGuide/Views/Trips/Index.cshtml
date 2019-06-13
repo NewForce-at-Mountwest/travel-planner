@@ -9,6 +9,24 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<p>
+
+    @if (Context.Request.Query["viewPastTrips"] == "true")
+    {
+        <a asp-action="Index">View Future Trips</a>
+
+    }
+    else
+    {
+        <a asp-action="Index" asp-route-viewPastTrips="true">View Past Trips</a>
+
+    }
+
+</p>
+<form>
+    <input type="text" name="searchQuery" />
+    <button type="submit">Search</button>
+</form>
 <table class="table">
     <thead>
         <tr>

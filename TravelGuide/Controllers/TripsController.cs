@@ -26,13 +26,30 @@ namespace TravelGuide.Controllers
         private Task<ApplicationUser> GetCurrentUserAsync() => _userManager.GetUserAsync(HttpContext.User);
 
         // GET: Trips
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool viewPastTrips, string searchQuery)
         {
+          
             ApplicationUser user = await GetCurrentUserAsync();
             List<Trip> tripList = await _context.Trip
                 .Include(t => t.client)
+                .OrderBy(t => t.StartDate)
                 .Where(t => t.client.ApplicationUserId == user.Id) // Only get trips for clients this user has created
                 .ToListAsync();
+
+
+            if (searchQuery != null)
+            {
+                tripList = tripList.Where(t => t.Location.Contains(searchQuery)).ToList();
+            }
+                if (viewPastTrips)
+            {
+                tripList = tripList.Where(t => t.EndDate < DateTime.Now).ToList();
+            } else
+            {
+                tripList = tripList.Where(t => t.EndDate > DateTime.Now).ToList();
+            }
+
+            
             return View(tripList);
         }
 
