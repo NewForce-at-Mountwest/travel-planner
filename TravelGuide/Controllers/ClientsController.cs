@@ -45,6 +45,7 @@ namespace TravelGuide.Controllers
             }
 
             Client client = await _context.Client
+                .Include(c => c.Trips)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             // Make sure that a client came back and that it belongs to the current user

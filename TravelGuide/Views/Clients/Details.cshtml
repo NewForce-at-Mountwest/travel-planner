@@ -29,6 +29,14 @@
             @Html.DisplayFor(model => model.phoneNumber)
         </dd>
     </dl>
+    <h4>Trips</h4>
+    @foreach (var trip in Model.Trips)
+    {
+        <p>
+            <h5>@Html.DisplayFor(model => trip.Location)</h5>
+            <div>@Html.DisplayFor(model => trip.StartDate)   -   @Html.DisplayFor(model => trip.EndDate)</div>
+        </p>
+    }
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |

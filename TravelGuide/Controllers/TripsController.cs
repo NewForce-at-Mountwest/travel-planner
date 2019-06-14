@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TravelGuide.Data;
 using TravelGuide.Models;
+using TravelGuide.Models.ViewModels;
 
 namespace TravelGuide.Controllers
 {
@@ -23,12 +24,13 @@ namespace TravelGuide.Controllers
             _userManager = userManager;
         }
 
+        // Gives us access to the user that's currently logged in
         private Task<ApplicationUser> GetCurrentUserAsync() => _userManager.GetUserAsync(HttpContext.User);
 
         // GET: Trips
         public async Task<IActionResult> Index(bool viewPastTrips, string searchQuery)
         {
-          
+
             ApplicationUser user = await GetCurrentUserAsync();
             List<Trip> tripList = await _context.Trip
                 .Include(t => t.client)
@@ -36,20 +38,25 @@ namespace TravelGuide.Controllers
                 .Where(t => t.client.ApplicationUserId == user.Id) // Only get trips for clients this user has created
                 .ToListAsync();
 
-
+            // First, check to see if the user searched anything. If so, we'll filter by that
             if (searchQuery != null)
             {
+                // .Contains() is case sensitive, we should normalize the search query to make it case insensitive
                 tripList = tripList.Where(t => t.Location.Contains(searchQuery)).ToList();
+                
             }
-                if (viewPastTrips)
+
+           
+            if (viewPastTrips)
             {
                 tripList = tripList.Where(t => t.EndDate < DateTime.Now).ToList();
-            } else
+            }
+            else
             {
                 tripList = tripList.Where(t => t.EndDate > DateTime.Now).ToList();
             }
 
-            
+
             return View(tripList);
         }
 
@@ -61,7 +68,7 @@ namespace TravelGuide.Controllers
                 return NotFound();
             }
 
-            var trip = await _context.Trip
+            Trip trip = await _context.Trip
                 .Include(t => t.client)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (trip == null)
@@ -75,10 +82,15 @@ namespace TravelGuide.Controllers
         // GET: Trips/Create
         public async Task<IActionResult> Create()
         {
-            // TODO: refactor to view model
+
             ApplicationUser user = await GetCurrentUserAsync();
-            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId== user.Id), "Id", "FirstName");
-            return View();
+            TripViewModel vm = new TripViewModel()
+            {
+                Clients = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName")
+            };
+
+
+            return View(vm);
         }
 
         // POST: Trips/Create
@@ -86,18 +98,22 @@ namespace TravelGuide.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,StartDate,EndDate,Location,ClientId")] Trip trip)
+        public async Task<IActionResult> Create(TripViewModel vm)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(trip);
+                _context.Add(vm.trip);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            // TODO: refactor to view model
+            
             ApplicationUser user = await GetCurrentUserAsync();
-            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName");
-            return View(trip);
+            vm.Clients = new SelectList(
+                _context.Client
+                .Where(c => c.ApplicationUserId == user.Id),
+                "Id", 
+                "FirstName");
+            return View(vm);
         }
 
         // GET: Trips/Edit/5
@@ -108,16 +124,21 @@ namespace TravelGuide.Controllers
                 return NotFound();
             }
 
-            var trip = await _context.Trip.FindAsync(id);
-            if (trip == null)
+            var currentTrip = await _context.Trip.FindAsync(id);
+            if (currentTrip == null)
             {
                 return NotFound();
             }
 
-            // Todo: refactor to view model
+            
             ApplicationUser user = await GetCurrentUserAsync();
-            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName");
-            return View(trip);
+            TripViewModel vm = new TripViewModel()
+            {
+                trip = currentTrip,
+                Clients = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName")
+            };
+            
+            return View(vm);
         }
 
         // POST: Trips/Edit/5
@@ -125,9 +146,9 @@ namespace TravelGuide.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,StartDate,EndDate,Location,ClientId")] Trip trip)
+        public async Task<IActionResult> Edit(int id, TripViewModel vm)
         {
-            if (id != trip.Id)
+            if (id != vm.trip.Id)
             {
                 return NotFound();
             }
@@ -136,12 +157,12 @@ namespace TravelGuide.Controllers
             {
                 try
                 {
-                    _context.Update(trip);
+                    _context.Update(vm.trip);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TripExists(trip.Id))
+                    if (!TripExists(vm.trip.Id))
                     {
                         return NotFound();
                     }
@@ -154,8 +175,9 @@ namespace TravelGuide.Controllers
             }
             // Todo: refactor to view model
             ApplicationUser user = await GetCurrentUserAsync();
-            ViewData["ClientId"] = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName");
-            return View(trip);
+            vm.Clients = new SelectList(_context.Client.Where(c => c.ApplicationUserId == user.Id), "Id", "FirstName")
+            ;
+            return View(vm);
         }
 
         // GET: Trips/Delete/5

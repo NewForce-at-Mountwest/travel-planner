@@ -1,4 +1,4 @@
-﻿@model TravelGuide.Models.Trip
+﻿@model TravelGuide.Models.ViewModels.TripViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -12,26 +12,26 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="trip.Id" />
             <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
+                <label asp-for="trip.StartDate" class="control-label"></label>
+                <input asp-for="trip.StartDate" class="form-control" />
+                <span asp-validation-for="trip.StartDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
+                <label asp-for="trip.EndDate" class="control-label"></label>
+                <input asp-for="trip.EndDate" class="form-control" />
+                <span asp-validation-for="trip.EndDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Location" class="control-label"></label>
-                <input asp-for="Location" class="form-control" />
-                <span asp-validation-for="Location" class="text-danger"></span>
+                <label asp-for="trip.Location" class="control-label"></label>
+                <input asp-for="trip.Location" class="form-control" />
+                <span asp-validation-for="trip.Location" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ClientId" class="control-label"></label>
-                <select asp-for="ClientId" class="form-control" asp-items="ViewBag.ClientId"></select>
-                <span asp-validation-for="ClientId" class="text-danger"></span>
+                <label asp-for="trip.ClientId" class="control-label"></label>
+                <select asp-for="trip.ClientId" class="form-control" asp-items="@Model.Clients"></select>
+                <span asp-validation-for="trip.ClientId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
